@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert, TextInput, TouchableOpacity, Text, ScrollView 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, Contact } from '../types';
 import { db } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { ref, get, update } from 'firebase/database';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Edit'>;
 
@@ -15,9 +15,10 @@ export default function EditScreen({ route, navigation }: Props) {
   useEffect(() => {
     const loadContact = async () => {
       try {
-        const docSnapshot = await getDoc(doc(db, 'contacts', id));
-        if (docSnapshot.exists()) {
-          setForm(docSnapshot.data() as Contact);
+        const contactRef = ref(db, `contacts/${id}`);
+        const snapshot = await get(contactRef);
+        if (snapshot.exists()) {
+          setForm(snapshot.val() as Contact);
         }
       } catch (error) {
         Alert.alert('Error', 'Failed to load contact');
@@ -34,7 +35,8 @@ export default function EditScreen({ route, navigation }: Props) {
       return;
     }
     try {
-      await updateDoc(doc(db, 'contacts', id), form);
+      const contactRef = ref(db, `contacts/${id}`);
+      await update(contactRef, form);
       Alert.alert('Success', 'Contact updated');
       navigation.goBack();
     } catch (error) {

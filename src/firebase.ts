@@ -1,14 +1,15 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp } from "firebase/app";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAs-H6UfYZ9s0s4vQQpQ4QvQvJv9pJuY-M",
-  authDomain: "crud-firebase-5c5d0.firebaseapp.com",
-  projectId: "crud-firebase-5c5d0",
-  storageBucket: "crud-firebase-5c5d0.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
+  apiKey: "AIzaSyAqp1vxeMoSCLY1kwiYem0o32k0sWjOFv8",
+  authDomain: "crud-firebase-app-e099c.firebaseapp.com",
+  databaseURL: "https://crud-firebase-app-e099c-default-rtdb.firebaseio.com",
+  projectId: "crud-firebase-app-e099c",
+  storageBucket: "crud-firebase-app-e099c.firebasestorage.app",
+  messagingSenderId: "701002807138",
+  appId: "1:701002807138:web:50acffa54c94a84fdd5e3b"
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+export const db = getDatabase(app);

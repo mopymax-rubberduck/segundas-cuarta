@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert, TextInput, TouchableOpacity, FlatList, Text } 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, Contact } from '../types';
 import { db } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, Timestamp } from 'firebase/firestore';
+import { ref, push, remove, onValue } from 'firebase/database';
 import { MaterialIcons } from '@expo/vector-icons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'List'>;
@@ -13,14 +13,30 @@ export default function ListScreen({ navigation }: Props) {
   const [form, setForm] = useState({ name: '', phone: '', email: '', note: '' });
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'contacts'), (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Contact[];
-      setContacts(data);
-    });
-    return unsubscribe;
+    if (!db) {
+      console.error('Database not initialized');
+      Alert.alert('Error', 'Database connection failed');
+      return;
+    }
+    try {
+      const contactsRef = ref(db, 'contacts');
+      const unsubscribe = onValue(contactsRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const contactArray = Object.keys(data).map((key) => ({
+            id: key,
+            ...data[key],
+          })) as Contact[];
+          setContacts(contactArray);
+        } else {
+          setContacts([]);
+        }
+      });
+      return unsubscribe;
+    } catch (error) {
+      console.error('Error setting up listener:', error);
+      Alert.alert('Error', 'Failed to load contacts');
+    }
   }, []);
 
   const add = async () => {
@@ -29,9 +45,10 @@ export default function ListScreen({ navigation }: Props) {
       return;
     }
     try {
-      await addDoc(collection(db, 'contacts'), {
+      const contactsRef = ref(db, 'contacts');
+      await push(contactsRef, {
         ...form,
-        createdAt: Timestamp.now(),
+        createdAt: new Date().toISOString(),
       });
       setForm({ name: '', phone: '', email: '', note: '' });
       Alert.alert('Success', 'Contact added');
@@ -42,7 +59,8 @@ export default function ListScreen({ navigation }: Props) {
 
   const deleteContact = async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'contacts', id));
+      const contactRef = ref(db, `contacts/${id}`);
+      await remove(contactRef);
       Alert.alert('Success', 'Contact deleted');
     } catch (error) {
       Alert.alert('Error', 'Failed to delete contact');
