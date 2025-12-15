@@ -6,5 +6,6 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "jsx": "react-native"
-  }
+  },
+  "extends": "expo/tsconfig.base"
 }
